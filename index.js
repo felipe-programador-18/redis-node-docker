@@ -2,9 +2,13 @@
 const express= require("express")
 const api = express()
 const redis = require("redis")
-const client = redis.createClient()
 
-// const port= 3000
+// remind i have to always define my port to connect together with docker
+const client = redis.createClient({
+   host:"redis-server"
+})
+
+
 
 client.set('visits', 0)
 
