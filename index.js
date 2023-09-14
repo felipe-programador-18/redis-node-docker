@@ -1,18 +1,43 @@
 
 const express= require("express")
 const api = express()
-const redis = require("redis")
+//const redis = require("redis")
+
+import { createClient } from "redis"
 
 
-// remind i have to always define my port to connect together with docker
-const client = redis.createClient({
-   host:'redis-server',
-   port:6379
-})
 
-await client.connect()
+//const  client = createClient({host:'redis-server',port:6379})
+// client.connect()
 
-client.set('visits', 0)
+
+async function run() {
+    const client = createClient();
+  
+    await client.connect();
+  
+    console.log(client.isOpen); // this is true
+  
+    await client.disconnect();
+  }
+  
+  run();
+
+
+  client.set('visits', 0)
+
+
+
+
+//const client = createClient({host:'redis-server',port:6379});  
+//client.
+//connect()
+//.then(() => {
+//  console.log("connect here testing here now") 
+//})
+
+
+//client.set('visits', 0)
 
 api.get('/', (req, res) => {    
     // put together something new with redis
@@ -23,7 +48,6 @@ api.get('/', (req, res) => {
 
 })
 
-
 api.listen(4001, () => {
-   console.log('connect here now 8081')
+  console.log('connect here now 8081')
 })
