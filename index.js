@@ -1,53 +1,43 @@
+const express = require("express");
+const redis = require("redis");
 
-const express= require("express")
-const api = express()
-//const redis = require("redis")
+const ManageCreate = redis.createClient;
+const client = ManageCreate();
 
-import { createClient } from "redis"
+const api = express();
 
-
-
-//const  client = createClient({host:'redis-server',port:6379})
-// client.connect()
-
-
-async function run() {
-    const client = createClient();
-  
-    await client.connect();
-  
-    console.log(client.isOpen); // this is true
-  
-    await client.disconnect();
+client.get('visits', async (err, visits) => {
+  if (err) {
+    console.error("Error retrieving visits:", err);
+    return;
   }
-  
-  run();
 
+  // If 'visits' key doesn't exist, set it to 0
+  if (visits === null) {
+    visits = 0;
+    await client.set('visits', visits);
+  }
 
-  client.set('visits', 0)
+  api.get('/', async (req, res) => {
+    // Increment visits and set it again
+    visits = parseInt(visits) + 1;
+    await client.set('visits', visits);
 
+    res.send(`The number of visits here is ${visits}`);
+  });
 
+  api.listen(4001, () => {
+    console.log('Server is running on port 4001');
+  });
+});
 
+// Handle Redis connection errors
+client.on('error', (err) => {
+  console.error(`Redis error: ${err}`);
+});
 
-//const client = createClient({host:'redis-server',port:6379});  
-//client.
-//connect()
-//.then(() => {
-//  console.log("connect here testing here now") 
-//})
-
-
-//client.set('visits', 0)
-
-api.get('/', (req, res) => {    
-    // put together something new with redis
-    client.get('visits', (err,visits) =>{
-        res.send("the numbers of visits here is ", visits)  
-        client.set('clients', parseInt(client+1))
-    })
-
-})
-
-api.listen(4001, () => {
-  console.log('connect here now 8081')
-})
+// Handle graceful shutdown
+process.on('SIGINT', async () => {
+  await client.quit();
+  process.exit();
+});
